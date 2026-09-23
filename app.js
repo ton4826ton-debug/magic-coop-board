@@ -196,6 +196,7 @@ function setUser(u) {
 
 function logout() {
   if (me) leavePresence();
+  if (CLOUD) cloudStop();
   if (FB) auth.signOut();
   me = null;
   sess.del("user");
@@ -205,10 +206,12 @@ function logout() {
 }
 
 function getBoard(id) {
+  if (CLOUD) return cloudBoard(id);
   return store.get("board_" + id);
 }
 
 function allBoards() {
+  if (CLOUD) return Object.keys(cloud.index || {}).map(cloudBoard).filter(Boolean);
   return store
     .keys("board_")
     .map((k) => store.get(k))
@@ -216,7 +219,191 @@ function allBoards() {
 }
 
 function putBoard(b) {
+  if (CLOUD) return cloudPut(b);
   return store.set("board_" + b.id, b);
+}
+
+// ---------- เก็บข้อมูลบน Firebase Realtime Database ----------
+// ทุกเครื่องเห็นบอร์ดเดียวกัน ข้อมูลในเครื่องเป็นแค่ cache ที่ sync กับ server ตลอด
+const CLOUD = FB && !!firebase.database;
+let db = null,
+  cloudAuthed = false,
+  srvOffset = 0;
+const cloud = { boards: {}, subs: {}, index: null, idxOff: null, ready: false, email: null, presence: {}, presOff: null, presRef: null };
+const ekey = (e) => (e || "").toLowerCase().replace(/\./g, ",");
+const nowS = () => Date.now() + srvOffset;
+
+if (CLOUD) {
+  db = firebase
+    .app()
+    .database(fbCfg.databaseURL || `https://${fbCfg.projectId}-default-rtdb.asia-southeast1.firebasedatabase.app`);
+  db.ref(".info/serverTimeOffset").on("value", (s) => (srvOffset = s.val() || 0));
+}
+
+// ตัด undefined / null / ของว่างออก (Realtime Database ไม่เก็บค่าพวกนี้) จะได้เทียบกับของบน server ได้ตรง
+function clean(v) {
+  if (Array.isArray(v)) return v.map(clean);
+  if (v && typeof v === "object") {
+    const o = {};
+    for (const k of Object.keys(v).sort()) {
+      const c = clean(v[k]);
+      if (c === undefined || c === null) continue;
+      if (typeof c === "object" && !Array.isArray(c) && !Object.keys(c).length) continue;
+      if (Array.isArray(c) && !c.length) continue;
+      o[k] = c;
+    }
+    return o;
+  }
+  return v === undefined ? null : v;
+}
+const same = (a, b) => JSON.stringify(clean(a ?? null)) === JSON.stringify(clean(b ?? null));
+
+function cloudSub(id) {
+  if (cloud.subs[id]) return;
+  const c = (cloud.boards[id] = { meta: null, access: {}, objects: {}, timer: null, got: 0, waiters: [] });
+  const ref = db.ref("boards/" + id);
+  cloud.subs[id] = ["meta", "access", "objects", "timer"].map((part, i) => {
+    const r = ref.child(part);
+    const cb = r.on(
+      "value",
+      (snap) => {
+        c[part] = snap.val() || (part === "meta" || part === "timer" ? null : {});
+        c.got |= 1 << i;
+        cloudChanged(id, part);
+      },
+      () => {
+        c.got |= 1 << i;
+        c.denied = true;
+        cloudChanged(id, part);
+      },
+    );
+    return () => r.off("value", cb);
+  });
+}
+
+function cloudUnsub(id) {
+  (cloud.subs[id] || []).forEach((off) => off());
+  delete cloud.subs[id];
+  delete cloud.boards[id];
+}
+
+const cloudLoaded = (id) => !!cloud.boards[id] && cloud.boards[id].got === 15;
+
+function whenLoaded(id, fn) {
+  cloudSub(id);
+  if (cloudLoaded(id)) fn();
+  else cloud.boards[id].waiters.push(fn);
+}
+
+let dashT = null,
+  lastTimerEnd = {};
+function cloudChanged(id, part) {
+  const c = cloud.boards[id];
+  if (!c) return;
+  if (cloudLoaded(id) && c.waiters.length) c.waiters.splice(0).forEach((f) => f());
+  checkReady();
+  if (B && B.id === id) {
+    if (part === "timer") {
+      const t = c.timer;
+      if (t && t.end > nowS() && lastTimerEnd[id] !== t.end && t.by !== me.name) toast(t.by + " เริ่มจับเวลา " + t.dur + " นาที");
+      lastTimerEnd[id] = t ? t.end : 0;
+      tickTimer();
+    } else if (drag || editing) pendingRemote = true;
+    else pullRemote();
+  }
+  if ($("#v-dash").classList.contains("on")) {
+    clearTimeout(dashT);
+    dashT = setTimeout(renderDash, 60);
+  }
+}
+
+function checkReady() {
+  if (cloud.ready || !cloud.index) return;
+  if (Object.keys(cloud.index).every(cloudLoaded)) {
+    cloud.ready = true;
+    if ($("#v-dash").classList.contains("on")) renderDash();
+  }
+}
+
+function cloudStart() {
+  if (!CLOUD || !me || cloud.email === me.email) return;
+  cloudStop();
+  cloud.email = me.email;
+  const r = db.ref("userBoards/" + ekey(me.email));
+  const cb = r.on("value", (snap) => {
+    cloud.index = snap.val() || {};
+    Object.keys(cloud.index).forEach(cloudSub);
+    checkReady();
+    if ($("#v-dash").classList.contains("on")) renderDash();
+  });
+  cloud.idxOff = () => r.off("value", cb);
+}
+
+function cloudStop() {
+  if (cloud.idxOff) cloud.idxOff();
+  Object.keys(cloud.subs).forEach(cloudUnsub);
+  Object.assign(cloud, { boards: {}, subs: {}, index: null, idxOff: null, ready: false, email: null });
+}
+
+function cloudBoard(id) {
+  const c = cloud.boards[id];
+  if (!c || !c.meta) return null;
+  const acc = Object.values(c.access || {});
+  return JSON.parse(
+    JSON.stringify({
+      ...c.meta,
+      id,
+      members: acc.filter((a) => a.role !== "owner").map((a) => ({ email: a.email, name: a.name || "", role: a.role })),
+      objects: Object.values(c.objects || {}),
+      removed: {},
+    }),
+  );
+}
+
+function cloudPut(b) {
+  const id = b.id;
+  cloudSub(id);
+  const c = cloud.boards[id],
+    base = "boards/" + id + "/",
+    u = {};
+  const { objects, members, removed, ...meta } = b;
+  const was = cloudBoard(id);
+  const role = was ? roleOf(was) : "owner";
+  if ((role === "owner" || role === "editor") && !same(meta, c.meta)) u[base + "meta"] = clean(meta);
+  const want = { [ekey(b.owner)]: { email: b.owner, name: b.ownerName || "", role: "owner" } };
+  for (const m of members || []) want[ekey(m.email)] = { email: m.email, name: m.name || "", role: m.role };
+  const have = c.access || {};
+  for (const k of new Set([...Object.keys(want), ...Object.keys(have)])) {
+    if (same(want[k], have[k])) continue;
+    u[base + "access/" + k] = want[k] ? clean(want[k]) : null;
+    u["userBoards/" + k + "/" + id] = want[k] ? true : null;
+  }
+  const wo = {};
+  for (const o of objects || []) wo[o.id] = o;
+  const ho = c.objects || {};
+  if (role === "owner" || role === "editor")
+    for (const k of new Set([...Object.keys(wo), ...Object.keys(ho)]))
+      if (!same(wo[k], ho[k])) u[base + "objects/" + k] = wo[k] ? clean(wo[k]) : null;
+  if (!Object.keys(u).length) return true;
+  db.ref()
+    .update(u)
+    .catch((err) => {
+      console.error(err);
+      toast("บันทึกขึ้นระบบไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตหรือสิทธิ์ของบอร์ด");
+    });
+  return true;
+}
+
+function cloudDelete(id) {
+  const c = cloud.boards[id];
+  if (!c) return;
+  const base = "boards/" + id + "/",
+    u = { [base + "meta"]: null, [base + "objects"]: null, [base + "timer"]: null };
+  for (const k of Object.keys(c.access || {})) {
+    u[base + "access/" + k] = null;
+    u["userBoards/" + k + "/" + id] = null;
+  }
+  return db.ref().update(u);
 }
 
 function roleOf(b, u = me) {
@@ -679,6 +866,16 @@ function route() {
     openLogin();
     return;
   }
+  if (CLOUD && !cloudAuthed) {
+    if (page === "board" || page === "join") {
+      showView("v-board");
+      boardMsg("กำลังเชื่อมต่อ...", "", false);
+    } else {
+      showView("v-dash");
+      $("#boardGrid").innerHTML = `<div class="empty"><b>กำลังเชื่อมต่อ...</b>รอสักครู่</div>`;
+    }
+    return;
+  }
   if (page === "dashboard") {
     showView("v-dash");
     renderDash();
@@ -769,6 +966,8 @@ function authError(err) {
 if (FB) {
   auth.onAuthStateChanged((u) => {
     if (!u) {
+      cloudAuthed = false;
+      if (CLOUD) cloudStop();
       // session หมดแต่ยังค้างข้อมูลเก่าในแท็บ
       if (me) {
         me = null;
@@ -779,8 +978,14 @@ if (FB) {
     }
     const email = (u.email || "").toLowerCase();
     const name = u.displayName || signupName || email.split("@")[0];
-    if (me && me.email === email) return;
+    cloudAuthed = true;
+    if (me && me.email === email) {
+      cloudStart();
+      route();
+      return;
+    }
     finishLogin(name, email);
+    cloudStart();
   });
 
   $("#authForm").onsubmit = async (e) => {
@@ -918,7 +1123,12 @@ function boardsForTab(tab) {
 
 // dashboard
 function renderDash() {
+  if (!me) return;
   $("#meBtn").innerHTML = avatarHTML(me);
+  if (CLOUD && !cloud.ready) {
+    $("#boardGrid").innerHTML = `<div class="empty"><b>กำลังโหลดบอร์ด...</b>รอสักครู่</div>`;
+    return;
+  }
   ["mine", "shared", "trash"].forEach((t) => {
     const n = allBoards().filter((b) => {
       const r = roleOf(b);
@@ -1088,7 +1298,8 @@ function cardAction(a, id) {
   }
   if (a === "purge")
     confirmBox("ลบบอร์ดถาวร?", "“" + b.title + "” จะถูกลบและกู้คืนไม่ได้อีก", "ลบถาวร", () => {
-      store.del("board_" + id);
+      if (CLOUD) cloudDelete(id);
+      else store.del("board_" + id);
       renderDash();
       toast("ลบถาวรแล้ว");
     });
@@ -1129,16 +1340,26 @@ document.addEventListener("click", (e) => {
 function resetDemo() {
   confirmBox(
     "รีเซ็ตข้อมูลเดโม?",
-    "บอร์ดทั้งหมดในเบราว์เซอร์นี้จะถูกลบ แล้วสร้างบอร์ดตัวอย่างชุดใหม่ ใช้ก่อนอัดคลิปหรือแคปภาพคู่มือ",
+    "บอร์ดทั้งหมดของคุณจะถูกลบ แล้วสร้างบอร์ดตัวอย่างชุดใหม่ ใช้ก่อนอัดคลิปหรือแคปภาพคู่มือ",
     "รีเซ็ต",
     () => {
-      for (const k of [
-        ...store.keys("board_"),
-        ...store.keys("pres_"),
-        ...store.keys("timer_"),
-        ...store.keys("seeded_"),
-      ])
-        store.del(k);
+      if (CLOUD) {
+        for (const b of allBoards()) {
+          if (roleOf(b) === "owner") cloudDelete(b.id);
+          else {
+            b.members = b.members.filter((m) => m.email !== me.email);
+            putBoard(b);
+          }
+        }
+        store.del("seeded_" + me.email);
+      } else
+        for (const k of [
+          ...store.keys("board_"),
+          ...store.keys("pres_"),
+          ...store.keys("timer_"),
+          ...store.keys("seeded_"),
+        ])
+          store.del(k);
       seedFor(me);
       dashTab = "mine";
       $("#q").value = "";
@@ -1265,8 +1486,23 @@ function fitView() {
   applyView();
 }
 
+function boardMsg(title, text, back = true) {
+  const msg = $("#bMsg");
+  msg.hidden = false;
+  msg.innerHTML = `<div><h2 style="color:var(--bone);margin-bottom:8px">${title}</h2><p style="opacity:.75;margin:0 0 18px">${text}</p>${back ? `<button class="btn btn-primary" onclick="go('/dashboard')">กลับไป Dashboard</button>` : ""}</div>`;
+  B = null;
+  objsEl.innerHTML = "";
+}
+
 function openBoard(id) {
   closeBoard(true);
+  if (CLOUD && !cloudLoaded(id)) {
+    boardMsg("กำลังโหลดบอร์ด...", "", false);
+    whenLoaded(id, () => {
+      if (location.hash === "#/board/" + id) openBoard(id);
+    });
+    return;
+  }
   const b = getBoard(id);
   const msg = $("#bMsg");
   msg.hidden = true;
@@ -1286,6 +1522,7 @@ function openBoard(id) {
     return;
   }
   B = b;
+  setSyncBase();
   sel = null;
   multi = [];
   editing = null;
@@ -1519,18 +1756,38 @@ function commit() {
   render();
 }
 
-let saveT = null;
+let saveT = null,
+  syncBase = new Map();
+
+function setSyncBase() {
+  syncBase = new Map((B ? B.objects : []).map((o) => [o.id, JSON.stringify(clean(o))]));
+}
 
 function save() {
   if (!B) return;
   const st = $("#saveState span");
   st.textContent = "กำลังบันทึก...";
   const stored = getBoard(B.id);
-  B = mergeBoards(B, stored);
+  if (CLOUD && stored) {
+    // เอาเฉพาะชิ้นที่เราแก้ ไปวางบนข้อมูลล่าสุดจาก server กันไม่ให้ของที่เพื่อนลบไปแล้วกลับมา
+    const cur = new Map(B.objects.map((o) => [o.id, o]));
+    const out = new Map(stored.objects.map((o) => [o.id, o]));
+    for (const [id, o] of cur) if (syncBase.get(id) !== JSON.stringify(clean(o))) out.set(id, o);
+    for (const id of syncBase.keys()) if (!cur.has(id)) out.delete(id);
+    B = {
+      ...B,
+      owner: stored.owner,
+      ownerName: stored.ownerName,
+      members: stored.members,
+      linkRole: stored.linkRole,
+      objects: [...out.values()],
+    };
+  } else B = mergeBoards(B, stored);
   B.updated = Date.now();
   const old = Date.now() - 7 * 864e5;
   for (const k in B.removed) if (B.removed[k] < old) delete B.removed[k];
   const ok = putBoard(B);
+  setSyncBase();
   clearTimeout(saveT);
   saveT = setTimeout(() => (st.textContent = ok ? "บันทึกแล้ว" : "บันทึกไม่สำเร็จ"), 350);
 }
@@ -1758,7 +2015,11 @@ $("#pop-ctxreact").onclick = (e) => {
 };
 
 function toggleReact(o, em) {
-  if (!canEdit() && !me) return;
+  if (!me) return;
+  if (CLOUD && !canEdit()) {
+    toast("สิทธิ์ดูอย่างเดียว กดรีแอคชันไม่ได้");
+    return;
+  }
   o.reacts = o.reacts || {};
   const a = (o.reacts[em] = o.reacts[em] || []);
   const i = a.indexOf(me.email);
@@ -2802,7 +3063,8 @@ function pullRemote() {
     go("/dashboard");
     return;
   }
-  B = mergeBoards(B, stored);
+  B = CLOUD ? stored : mergeBoards(B, stored);
+  setSyncBase();
   ROLE = roleOf(B);
   applyBg();
   resetBase();
@@ -2831,9 +3093,40 @@ window.addEventListener("storage", (e) => {
 let myCursor = null;
 
 // presence = ใครอยู่ในบอร์ด + ตำแหน่ง cursor
+let presW = 0;
 function writePresence(cur) {
   if (!B || !me) return;
   if (cur) myCursor = cur;
+  if (CLOUD) {
+    if (!cur && Date.now() - presW < 90) return;
+    presW = Date.now();
+    const r = vp.getBoundingClientRect();
+    if (!cloud.presRef || cloud.presRef.key !== TAB_ID || cloud.presBoard !== B.id) {
+      cloud.presRef = db.ref("boards/" + B.id + "/presence/" + TAB_ID);
+      cloud.presBoard = B.id;
+      cloud.presRef.onDisconnect().remove();
+      const pr = db.ref("boards/" + B.id + "/presence");
+      const cb = pr.on("value", (s) => {
+        cloud.presence = s.val() || {};
+        renderPresence();
+      });
+      cloud.presOff = () => pr.off("value", cb);
+    }
+    cloud.presRef.set(
+      clean({
+        name: me.name,
+        email: me.email,
+        color: me.color || colorFor(me.email),
+        ts: nowS(),
+        x: myCursor?.x,
+        y: myCursor?.y,
+        cx: (r.width / 2 - view.x) / view.z,
+        cy: (r.height / 2 - view.y) / view.z,
+        vz: view.z,
+      }),
+    );
+    return;
+  }
   const k = "pres_" + B.id,
     p = store.get(k, {}) || {},
     now = Date.now();
@@ -2861,6 +3154,14 @@ function heartbeat() {
 }
 
 function leavePresence() {
+  if (CLOUD) {
+    if (cloud.presOff) cloud.presOff();
+    if (cloud.presRef) cloud.presRef.remove();
+    cloud.presRef = cloud.presOff = null;
+    cloud.presence = {};
+    $("#cursors").innerHTML = "";
+    return;
+  }
   if (!B) return;
   const k = "pres_" + B.id,
     p = store.get(k, {}) || {};
@@ -2884,13 +3185,13 @@ const fmt = (ms) => {
 // timer
 function tickTimer() {
   if (!B) return;
-  const t = store.get("timer_" + B.id),
+  const t = CLOUD ? cloud.boards[B.id]?.timer : store.get("timer_" + B.id),
     pill = $("#timerPill");
   if (!t) {
     pill.hidden = true;
     return;
   }
-  const left = t.end - Date.now();
+  const left = t.end - (CLOUD ? nowS() : Date.now());
   if (left <= -8e3) {
     pill.hidden = true;
     return;
@@ -2942,11 +3243,11 @@ $("#timerPresets").onclick = (e) => {
   const b = e.target.closest("[data-min]");
   if (!b) return;
   const m = +b.dataset.min;
-  store.set("timer_" + B.id, {
-    end: Date.now() + m * 6e4,
-    dur: m,
-    by: me.name,
-  });
+  const t = { end: (CLOUD ? nowS() : Date.now()) + m * 6e4, dur: m, by: me.name };
+  if (CLOUD) {
+    lastTimerEnd[B.id] = t.end;
+    db.ref("boards/" + B.id + "/timer").set(t);
+  } else store.set("timer_" + B.id, t);
   $("#pop-timer").classList.remove("on");
   timerDoneFor = 0;
   tickTimer();
@@ -2954,7 +3255,8 @@ $("#timerPresets").onclick = (e) => {
 };
 
 $("#timerStop").onclick = () => {
-  store.del("timer_" + B.id);
+  if (CLOUD) db.ref("boards/" + B.id + "/timer").remove();
+  else store.del("timer_" + B.id);
   tickTimer();
 };
 
@@ -2993,9 +3295,10 @@ $("#stopFollow").onclick = stopFollow;
 
 function renderPresence() {
   if (!B) return;
-  const p = store.get("pres_" + B.id, {}) || {},
-    now = Date.now();
-  const live = Object.entries(p).filter(([id, v]) => now - v.ts < 6e3);
+  const p = CLOUD ? cloud.presence : store.get("pres_" + B.id, {}) || {},
+    now = CLOUD ? nowS() : Date.now();
+  // บน cloud คนที่ปิดแท็บจะถูกลบออกเองผ่าน onDisconnect ส่วน 60 วิไว้กันกรณีค้าง
+  const live = Object.entries(p).filter(([id, v]) => now - v.ts < (CLOUD ? 6e4 : 6e3));
   const names = new Map(live.filter(([, v]) => v.email !== me.email).map(([, v]) => [v.email, v.name]));
   if (lastFaces) {
     for (const [em, n] of names) if (!lastFaces.has(em)) toast(n + " เข้าร่วมบอร์ด");
@@ -3116,7 +3419,7 @@ function drawPeople() {
 function saveShare() {
   curShare.metaT = curShare.updated = Date.now();
   putBoard(curShare);
-  if (B && B.id === curShare.id) {
+  if (!CLOUD && B && B.id === curShare.id) {
     B = mergeBoards(curShare, B);
     B.members = curShare.members;
     B.linkRole = curShare.linkRole;
@@ -3186,6 +3489,14 @@ $("#copyLink").onclick = async () => {
 
 // เข้าบอร์ดจากลิงก์เชิญ
 function joinBoard(id) {
+  if (CLOUD && !cloudLoaded(id)) {
+    showView("v-board");
+    boardMsg("กำลังเข้าร่วมบอร์ด...", "", false);
+    whenLoaded(id, () => {
+      if (location.hash === "#/join/" + id) joinBoard(id);
+    });
+    return;
+  }
   const b = getBoard(id);
   if (!b) {
     go("/board/" + id);

@@ -1,6 +1,7 @@
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyDF0Lfnt41rZTi34E-nkHs-IfF5dmwV-5w",
   authDomain: "magic-coop-board.firebaseapp.com",
+  databaseURL: "https://magic-coop-board-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "magic-coop-board",
   storageBucket: "magic-coop-board.firebasestorage.app",
   messagingSenderId: "1077699855903",

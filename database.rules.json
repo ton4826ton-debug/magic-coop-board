@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "boards": {
+      "$bid": {
+        ".read": "auth != null",
+        "meta": {
+          ".write": "auth != null && (!root.child('boards').child($bid).child('meta').exists() || root.child('boards').child($bid).child('access').child(auth.token.email.toLowerCase().replace('.', ',')).child('role').val() === 'owner' || root.child('boards').child($bid).child('access').child(auth.token.email.toLowerCase().replace('.', ',')).child('role').val() === 'editor')"
+        },
+        "objects": {
+          ".write": "auth != null && (!root.child('boards').child($bid).child('meta').exists() || root.child('boards').child($bid).child('access').child(auth.token.email.toLowerCase().replace('.', ',')).child('role').val() === 'owner' || root.child('boards').child($bid).child('access').child(auth.token.email.toLowerCase().replace('.', ',')).child('role').val() === 'editor')"
+        },
+        "timer": {
+          ".write": "auth != null && (!root.child('boards').child($bid).child('meta').exists() || root.child('boards').child($bid).child('access').child(auth.token.email.toLowerCase().replace('.', ',')).child('role').val() === 'owner' || root.child('boards').child($bid).child('access').child(auth.token.email.toLowerCase().replace('.', ',')).child('role').val() === 'editor')"
+        },
+        "access": {
+          "$k": {
+            ".write": "auth != null && (!root.child('boards').child($bid).child('meta').exists() || root.child('boards').child($bid).child('access').child(auth.token.email.toLowerCase().replace('.', ',')).child('role').val() === 'owner' || ($k === auth.token.email.toLowerCase().replace('.', ',') && ((!data.exists() && newData.child('role').val() === root.child('boards').child($bid).child('meta').child('linkRole').val()) || !newData.exists() || newData.child('role').val() === data.child('role').val())))"
+          }
+        },
+        "presence": {
+          "$tab": {
+            ".write": "auth != null"
+          }
+        }
+      }
+    },
+    "userBoards": {
+      "$k": {
+        ".read": "auth != null && $k === auth.token.email.toLowerCase().replace('.', ',')",
+        "$bid": {
+          ".write": "auth != null"
+        }
+      }
+    }
+  }
+}
