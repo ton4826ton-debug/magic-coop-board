@@ -326,7 +326,8 @@ function checkReady() {
 
 function cloudStart() {
   if (!CLOUD || !me || cloud.email === me.email) return;
-  cloudStop();
+  // ปิดของ user เก่าเฉพาะตอนสลับบัญชี ไม่งั้นบอร์ดที่กำลังรอโหลด (เช่นจากลิงก์เชิญ) จะหลุดไปด้วย
+  if (cloud.email) cloudStop();
   cloud.email = me.email;
   const r = db.ref("userBoards/" + ekey(me.email));
   cloud.error = null;
@@ -937,6 +938,7 @@ function openLogin() {
 
 function finishLogin(name, email) {
   setUser({ name, email, color: colorFor(email) });
+  cloudStart();
   closeModal("m-login");
   toast("ยินดีต้อนรับ " + name);
   const next = pendingAfterLogin || "/dashboard";
@@ -1001,7 +1003,6 @@ if (FB) {
       return;
     }
     finishLogin(name, email);
-    cloudStart();
   });
 
   $("#authForm").onsubmit = async (e) => {
