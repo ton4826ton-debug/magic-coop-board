@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Magic Co-op Board</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2260%22%20height%3D%2260%22%20rx%3D%2215%22%20fill%3D%22%231E2530%22/%3E%3Crect%20x%3D%2211%22%20y%3D%2211%22%20width%3D%2216%22%20height%3D%2216%22%20rx%3D%223%22%20fill%3D%22%23E3A008%22/%3E%3Cpath%20d%3D%22M12%2047c4-9%208%205%2013-3s8-7%2012-2%22%20fill%3D%22none%22%20stroke%3D%22%233FA796%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cg%20transform%3D%22rotate%28-45%2038%2045%29%22%3E%3Cpath%20d%3D%22M38%2045l8-4.2v8.4z%22%20fill%3D%22%23F1ECE1%22/%3E%3Cpath%20d%3D%22M38%2045l3.2-1.7v3.4z%22%20fill%3D%22%233FA796%22/%3E%3Crect%20x%3D%2246%22%20y%3D%2240.8%22%20width%3D%2222%22%20height%3D%228.4%22%20rx%3D%222.2%22%20fill%3D%22%23E3A008%22/%3E%3Crect%20x%3D%2262%22%20y%3D%2240.8%22%20width%3D%226%22%20height%3D%228.4%22%20rx%3D%222.2%22%20fill%3D%22%23C48A06%22/%3E%3C/g%3E%3C/svg%3E"
+    />
+    <meta name="theme-color" content="#1E2530" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Noto+Serif+Thai:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main id="v-landing" class="view">
+      <header class="topnav">
+        <a class="logo" href="#/home">
+          <span class="logo-mark">
+            <svg viewBox="0 0 64 64" aria-hidden="true"><use href="#logo" /></svg>
+          </span>
+          Magic Co-op Board
+        </a>
+        <nav aria-label="เมนูหลัก">
+          <a href="#features" data-scroll>ฟีเจอร์</a>
+          <a href="#pricing" data-scroll>ราคา</a>
+          <a href="#about" data-scroll>เกี่ยวกับเรา</a>
+        </nav>
+        <button class="btn btn-primary" data-act="start">เริ่มใช้งานฟรี</button>
+      </header>
+      <section class="hero">
+        <h1>
+          <span class="ph">รวมทีมของคุณให้ทำงาน</span>
+          <span class="ph">พร้อมกันได้ในบอร์ดเดียว</span>
+        </h1>
+        <p>
+          <span class="ph">ไวท์บอร์ดออนไลน์สำหรับระดมความคิด วางแผน</span>
+          <span class="ph">และทำงานร่วมกันแบบเรียลไทม์</span>
+          <span class="ph">ไม่ว่าทีมจะอยู่ที่ไหน</span>
+        </p>
+        <button class="btn btn-primary btn-lg" data-act="start">เริ่มใช้งานฟรี</button>
+        <div class="preview" aria-label="ตัวอย่างหน้าจอ Whiteboard canvas" role="img">
+          <div class="pv-bar">
+            Sprint Retro - Q3
+            <span class="sp"></span>
+            <span class="avatar" style="background: var(--teal); width: 26px; height: 26px; font-size: 10px">
+              นก
+            </span>
+            <span
+              class="avatar"
+              style="background: var(--coral); width: 26px; height: 26px; font-size: 10px; margin-left: -8px"
+            >
+              มด
+            </span>
+          </div>
+          <div class="pv-note" style="left: 8%; top: 22%; background: var(--amber)">What went well?</div>
+          <div class="pv-note" style="left: 33%; top: 38%; background: var(--teal)">ปัญหาที่พบ</div>
+          <div class="pv-note" style="left: 60%; top: 24%; background: var(--sage)">งานถัดไป</div>
+          <div class="pv-note" style="left: 16%; top: 66%; background: var(--coral)">Action items</div>
+          <div class="pv-note" style="left: 44%; top: 70%; background: var(--lilac)">ไอเดียใหม่</div>
+          <div class="pv-cursor pv-c1">
+            <svg width="16" height="18" viewBox="0 0 16 18">
+              <path d="M1 1l13 7-6 1.5L5 16z" fill="#E8735F" stroke="#fff" stroke-width="1.5" />
+            </svg>
+            <span style="background: var(--coral)">มด</span>
+          </div>
+          <div class="pv-cursor pv-c2">
+            <svg width="16" height="18" viewBox="0 0 16 18">
+              <path d="M1 1l13 7-6 1.5L5 16z" fill="#3FA796" stroke="#fff" stroke-width="1.5" />
+            </svg>
+            <span style="background: var(--teal)">นก</span>
+          </div>
+        </div>
+      </section>
+      <section class="features" id="features">
+        <div class="feat">
+          <div class="dot" style="background: var(--teal)">
+            <svg class="icon"><use href="#i-users" /></svg>
+          </div>
+          <h3>ทำงานพร้อมกันแบบเรียลไทม์</h3>
+          <p>เห็นเคอร์เซอร์และการแก้ไขของทีมทันที</p>
+        </div>
+        <div class="feat">
+          <div class="dot" style="background: var(--coral)">
+            <svg class="icon"><use href="#i-template" /></svg>
+          </div>
+          <h3>เทมเพลตสำเร็จรูป</h3>
+          <p>Kanban, Mind map, Retro board และอื่นๆ</p>
+        </div>
+        <div class="feat">
+          <div class="dot" style="background: var(--sage)">
+            <svg class="icon"><use href="#i-pen" /></svg>
+          </div>
+          <h3>วาดฟรีแฮนด์และโน้ต</h3>
+          <p>สร้าง sticky note รูปทรง และข้อความได้อิสระ</p>
+        </div>
+      </section>
+      <section class="section" id="pricing">
+        <h2>ราคา</h2>
+        <div class="plans">
+          <div class="plan hl">
+            <span class="plan-tag">แนะนำ</span>
+            <b>Free</b>
+            <div class="price">฿0</div>
+            <ul>
+              <li>สร้างบอร์ดได้ไม่จำกัด</li>
+              <li>เทมเพลตครบ 8 แบบ</li>
+              <li>Export เป็น PDF / PNG</li>
+            </ul>
+            <button class="btn btn-primary" data-act="start">เริ่มใช้งานฟรี</button>
+          </div>
+          <div class="plan">
+            <b>Team</b>
+            <div class="price">
+              ฿149
+              <small>/ผู้ใช้/เดือน</small>
+            </div>
+            <ul>
+              <li>ทุกอย่างในแพ็กเกจ Free</li>
+              <li>จัดการสมาชิกและสิทธิ์ทั้งทีม</li>
+              <li>ประวัติการแก้ไขย้อนหลัง</li>
+              <li>พื้นที่เก็บไฟล์ 100 GB</li>
+            </ul>
+            <button class="btn btn-outline" data-act="start">ทดลองใช้ฟรี 14 วัน</button>
+          </div>
+        </div>
+      </section>
+      <section class="section" id="about">
+        <h2>เกี่ยวกับเรา</h2>
+        <p class="about-lead">
+          เราเชื่อว่าไอเดียที่ดีที่สุดเกิดจากการคิดร่วมกัน Magic Co-op Board จึงถูกออกแบบให้ทุกคนในทีมได้เขียน
+          วาด และแสดงความเห็นบนพื้นที่เดียวกันได้ทันที ไม่ว่าจะนั่งอยู่ห้องประชุมเดียวกันหรืออยู่คนละเมือง
+        </p>
+        <p class="about-lead">
+          ตั้งแต่การระดมไอเดียโปรเจกต์ใหม่ การสรุปบทเรียนหลังจบงาน ไปจนถึงการวางแผนทั้งปี
+          เราอยากให้การทำงานเป็นทีมเป็นเรื่องง่ายและสนุกสำหรับทุกคน
+        </p>
+        <button class="btn btn-primary btn-lg" data-act="start" style="margin-top: 12px">
+          เริ่มใช้งานฟรี
+        </button>
+      </section>
+      <footer class="foot">© 2026 Magic Co-op Board สงวนลิขสิทธิ์</footer>
+    </main>
+
+    <div id="v-dash" class="view">
+      <header class="appbar">
+        <a class="logo" href="#/home" title="ไปหน้าแรก">
+          <span class="logo-mark">
+            <svg viewBox="0 0 64 64" aria-hidden="true"><use href="#logo" /></svg>
+          </span>
+          <span>Magic Co-op Board</span>
+        </a>
+        <label class="search">
+          <span class="sr">ค้นหาบอร์ด</span>
+          <svg class="icon"><use href="#i-search" /></svg>
+          <input class="field" id="q" type="search" placeholder="ค้นหาบอร์ด..." autocomplete="off" />
+        </label>
+        <button class="me-btn" id="meBtn" aria-label="บัญชีของฉัน" aria-haspopup="menu"></button>
+      </header>
+      <div class="dash">
+        <aside class="side" aria-label="หมวดบอร์ด">
+          <button data-tab="mine" class="on">
+            <svg class="icon"><use href="#i-grid" /></svg>
+            บอร์ดของฉัน
+            <span class="count" id="c-mine"></span>
+          </button>
+          <button data-tab="shared">
+            <svg class="icon"><use href="#i-users" /></svg>
+            แชร์กับฉัน
+            <span class="count" id="c-shared"></span>
+          </button>
+          <button data-tab="trash">
+            <svg class="icon"><use href="#i-trash" /></svg>
+            ถังขยะ
+            <span class="count" id="c-trash"></span>
+          </button>
+        </aside>
+        <section>
+          <div class="dash-head">
+            <h1 id="dashTitle">บอร์ดของฉัน</h1>
+            <button class="btn btn-primary" id="newBoard">
+              <svg class="icon"><use href="#i-plus" /></svg>
+              สร้างบอร์ดใหม่
+            </button>
+          </div>
+          <div class="grid" id="boardGrid"></div>
+        </section>
+      </div>
+    </div>
+
+    <div id="v-tpl" class="view">
+      <header class="appbar">
+        <a class="logo" href="#/home" title="ไปหน้าแรก">
+          <span class="logo-mark">
+            <svg viewBox="0 0 64 64" aria-hidden="true"><use href="#logo" /></svg>
+          </span>
+          <span>Magic Co-op Board</span>
+        </a>
+      </header>
+      <div class="tpl-wrap">
+        <div class="tpl-head">
+          <button class="icon-btn" onclick="go('/dashboard')" aria-label="กลับไป Dashboard">
+            <svg class="icon"><use href="#i-back" /></svg>
+          </button>
+          <h1>เลือก Template</h1>
+        </div>
+        <label class="search" style="max-width: none">
+          <span class="sr">ค้นหา Template</span>
+          <svg class="icon"><use href="#i-search" /></svg>
+          <input class="field" id="tq" type="search" placeholder="ค้นหา Template..." autocomplete="off" />
+        </label>
+        <div class="tpl-grid" id="tplGrid"></div>
+      </div>
+    </div>
+
+    <div id="v-board">
+      <header class="b-top">
+        <button
+          class="icon-btn"
+          onclick="go('/dashboard')"
+          aria-label="กลับไป Dashboard"
+          title="กลับไป Dashboard"
+        >
+          <svg class="icon"><use href="#i-back" /></svg>
+        </button>
+        <input class="b-title" id="bTitle" aria-label="ชื่อบอร์ด" maxlength="60" />
+        <span class="save-state" id="saveState">
+          <i></i>
+          <span>บันทึกแล้ว</span>
+        </span>
+        <span class="sp"></span>
+        <span class="ro-badge" id="roBadge" hidden>ดูอย่างเดียว</span>
+        <div class="faces" id="faces"></div>
+        <button class="icon-btn" id="timerBtn" aria-label="ตัวจับเวลา" title="ตัวจับเวลา">
+          <svg class="icon"><use href="#i-clock" /></svg>
+        </button>
+        <button class="icon-btn" id="bgBtn" aria-label="ตั้งค่าบอร์ด" title="พื้นหลังและการแสดงผล">
+          <svg class="icon"><use href="#i-palette" /></svg>
+        </button>
+        <button class="icon-btn" id="helpBtn" aria-label="คีย์ลัดและวิธีใช้" title="คีย์ลัดและวิธีใช้ (?)">
+          <svg class="icon"><use href="#i-help" /></svg>
+        </button>
+        <button class="btn btn-outline" id="exportBtn" style="padding: 7px 12px">
+          <svg class="icon"><use href="#i-download" /></svg>
+          <span class="lbl-hide">Export</span>
+        </button>
+        <button class="btn btn-primary" id="shareBtn" style="padding: 8px 18px">แชร์</button>
+      </header>
+      <div class="b-main">
+        <div class="vp" id="vp">
+          <div class="world" id="world">
+            <div id="objs"></div>
+            <div id="cursors"></div>
+          </div>
+        </div>
+        <div class="tools" id="tools" role="toolbar" aria-label="เครื่องมือ">
+          <button class="tool on" data-tool="select" title="เลือก / ลาก (V)">
+            <svg class="icon"><use href="#i-cursor" /></svg>
+            เลือก
+          </button>
+          <button class="tool" data-tool="note" title="Sticky note (N)">
+            <svg class="icon"><use href="#i-note" /></svg>
+            Note
+          </button>
+          <button class="tool" data-tool="pen" title="ปากกา (P)">
+            <svg class="icon"><use href="#i-pen" /></svg>
+            ปากกา
+          </button>
+          <button class="tool" data-tool="text" title="ข้อความ (T)">
+            <svg class="icon"><use href="#i-type" /></svg>
+            ข้อความ
+          </button>
+          <button class="tool" data-tool="shape" title="รูปทรง (S)">
+            <svg class="icon"><use href="#i-shapes" /></svg>
+            รูปทรง
+          </button>
+          <button class="tool" data-tool="image" title="รูปภาพ (I)">
+            <svg class="icon"><use href="#i-image" /></svg>
+            รูปภาพ
+          </button>
+          <button class="tool" data-tool="react" title="รีแอคชัน (R)">
+            <svg class="icon"><use href="#i-smile" /></svg>
+            รีแอคชัน
+          </button>
+          <button class="tool" data-tool="tpl" title="แทรกเทมเพลต">
+            <svg class="icon"><use href="#i-template" /></svg>
+            เทมเพลต
+          </button>
+          <hr />
+          <button class="tool" id="undoBtn" title="เลิกทำ (Ctrl+Z)">
+            <svg class="icon"><use href="#i-undo" /></svg>
+            เลิกทำ
+          </button>
+          <button class="tool" id="redoBtn" title="ทำซ้ำ (Ctrl+Y)">
+            <svg class="icon"><use href="#i-redo" /></svg>
+            ทำซ้ำ
+          </button>
+        </div>
+        <div class="pop" id="pop-note" style="top: 58px">
+          <div class="lbl">สีของ Note</div>
+          <div class="swatches" data-sw="note"></div>
+        </div>
+        <div class="pop" id="pop-pen" style="top: 108px">
+          <div class="lbl">สีปากกา</div>
+          <div class="swatches" data-sw="pen"></div>
+          <div class="lbl" style="margin-top: 10px">ความหนา</div>
+          <div class="seg" id="penW">
+            <button data-w="3">บาง</button>
+            <button data-w="6" class="on">กลาง</button>
+            <button data-w="12">หนา</button>
+          </div>
+          <div class="lbl" style="margin-top: 10px">โหมด</div>
+          <div class="seg" id="penMode">
+            <button data-m="pen" class="on">
+              <svg class="icon" style="width: 18px; height: 18px"><use href="#i-pen" /></svg>
+              ปากกา
+            </button>
+            <button data-m="hl">
+              <svg class="icon" style="width: 18px; height: 18px"><use href="#i-hl" /></svg>
+              ไฮไลต์
+            </button>
+            <button data-m="erase" id="eraserBtn">
+              <svg class="icon" style="width: 18px; height: 18px"><use href="#i-eraser" /></svg>
+              ยางลบ
+            </button>
+          </div>
+        </div>
+        <div class="pop" id="pop-shape" style="top: 210px">
+          <div class="lbl">ชนิดรูปทรง</div>
+          <div class="seg" id="shapeK">
+            <button data-k="rect" class="on" aria-label="สี่เหลี่ยม">
+              <svg class="icon"><use href="#i-rect" /></svg>
+            </button>
+            <button data-k="ellipse" aria-label="วงรี">
+              <svg class="icon"><use href="#i-circle" /></svg>
+            </button>
+            <button data-k="line" aria-label="ลูกศร">
+              <svg class="icon"><use href="#i-arrow" /></svg>
+            </button>
+          </div>
+          <div class="lbl" style="margin-top: 10px">สีเส้น</div>
+          <div class="swatches" data-sw="shape"></div>
+        </div>
+        <div class="pop" id="pop-react" style="top: 318px">
+          <div class="lbl">เลือกสติกเกอร์ แล้วคลิกบนบอร์ด</div>
+          <div class="emojis" data-emo="tool"></div>
+        </div>
+        <div class="pop top-pop" id="pop-bg">
+          <div class="lbl">สีพื้นหลังบอร์ด</div>
+          <div class="bgopts" id="bgOpts"></div>
+          <label class="check" style="margin: 12px 0 2px; font-size: 13px">
+            <input type="checkbox" id="showBy" />
+            แสดงชื่อผู้เขียนบน Note
+          </label>
+        </div>
+        <div class="pop" id="pop-ctxreact" style="z-index: 9">
+          <div class="lbl">รีแอคชันบน Note</div>
+          <div class="emojis" data-emo="note"></div>
+        </div>
+        <div class="ctx" id="ctx" role="toolbar" aria-label="แก้ไขวัตถุที่เลือก">
+          <div class="swatches" id="ctxSw"></div>
+          <span class="sep"></span>
+          <button class="icon-btn" data-c="edit" title="แก้ไขข้อความ (Enter)">
+            <svg class="icon"><use href="#i-edit" /></svg>
+          </button>
+          <div class="seg" id="ctxSize" style="margin: 0">
+            <button data-fs="0" title="เล็ก">S</button>
+            <button data-fs="1" title="กลาง">M</button>
+            <button data-fs="2" title="ใหญ่">L</button>
+          </div>
+          <button class="icon-btn" data-c="react" title="ใส่รีแอคชัน">
+            <svg class="icon"><use href="#i-smile" /></svg>
+          </button>
+          <button class="icon-btn" data-c="dup" title="ทำสำเนา (Ctrl+D)">
+            <svg class="icon"><use href="#i-copy" /></svg>
+          </button>
+          <button class="icon-btn" data-c="front" title="นำมาไว้ด้านหน้า">
+            <svg class="icon"><use href="#i-layers" /></svg>
+          </button>
+          <button class="icon-btn" data-c="del" title="ลบ (Delete)">
+            <svg class="icon"><use href="#i-trash" /></svg>
+          </button>
+        </div>
+        <div class="hint" id="hint" style="display: none"></div>
+        <div class="follow-bar" id="followBar" hidden>
+          <span id="followTxt"></span>
+          <button id="stopFollow">หยุดติดตาม</button>
+        </div>
+        <div class="timer-pill" id="timerPill" hidden>
+          <span aria-hidden="true">⏱</span>
+          <span class="t" id="timerT" role="timer" aria-live="off">00:00</span>
+          <button id="timerStop">ปิด</button>
+        </div>
+        <div class="pop top-pop" id="pop-timer" style="right: 60px">
+          <div class="lbl">ตั้งเวลาให้ทุกคนในบอร์ด</div>
+          <div class="presets" id="timerPresets">
+            <button data-min="1">1 นาที</button>
+            <button data-min="3">3 นาที</button>
+            <button data-min="5">5 นาที</button>
+            <button data-min="10">10 นาที</button>
+          </div>
+          <p class="fine" style="margin: 10px 0 0">
+            ทุกคนจะเห็นเวลานับถอยหลังเดียวกัน และได้ยินเสียงเตือนเมื่อหมดเวลา
+          </p>
+        </div>
+        <div class="zoom">
+          <div class="grp">
+            <button id="zOut" aria-label="ซูมออก">−</button>
+            <button id="zPct" title="พอดีหน้าจอ" style="min-width: 56px">100%</button>
+            <button id="zIn" aria-label="ซูมเข้า">+</button>
+          </div>
+        </div>
+        <div class="msg" id="bMsg" hidden></div>
+        <input type="file" id="imgInput" accept="image/*" hidden />
+      </div>
+    </div>
+
+    <div class="backdrop" id="m-login" role="dialog" aria-modal="true" aria-labelledby="lgT">
+      <div class="modal login">
+        <button class="icon-btn x" data-close aria-label="ปิด">
+          <svg class="icon"><use href="#i-x" /></svg>
+        </button>
+        <div>
+          <div class="logo-mark">
+            <svg viewBox="0 0 64 64" aria-hidden="true"><use href="#logo" /></svg>
+          </div>
+          <h2 id="lgT">ยินดีต้อนรับสู่ Magic Co-op Board</h2>
+          <p class="sub">เข้าสู่ระบบเพื่อเริ่มสร้างบอร์ดของคุณ</p>
+          <p class="fine" id="noAuthNotice" hidden>
+            ระบบเข้าสู่ระบบยังไม่ได้เชื่อมต่อ Firebase — ใส่ค่าจาก Firebase console ในไฟล์
+            firebase-config.js ก่อนใช้งานจริง
+          </p>
+          <button class="gbtn" id="gBtn">
+            <svg width="18" height="18" viewBox="0 0 48 48">
+              <path
+                fill="#EA4335"
+                d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.6 17.7 9.5 24 9.5z"
+              />
+              <path
+                fill="#4285F4"
+                d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.3 5.7c4.3-4 7-9.9 7-17.1z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"
+              />
+              <path
+                fill="#34A853"
+                d="M24 48c6.5 0 11.9-2.1 15.8-5.8l-7.3-5.7c-2 1.4-4.7 2.3-8.5 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.8 6C6.6 42.6 14.6 48 24 48z"
+              />
+            </svg>
+            Sign in with Google
+          </button>
+          <div id="emailAuth" hidden>
+            <div class="or"><span>หรือใช้อีเมล</span></div>
+            <form id="authForm" novalidate>
+              <div class="form-row" id="rowName" hidden>
+                <label for="auName">ชื่อที่แสดง</label>
+                <input class="field" id="auName" maxlength="24" autocomplete="name" />
+              </div>
+              <div class="form-row">
+                <label for="auEmail">อีเมล</label>
+                <input class="field" id="auEmail" type="email" autocomplete="email" placeholder="you@email.com" />
+              </div>
+              <div class="form-row">
+                <label for="auPass">รหัสผ่าน</label>
+                <input class="field" id="auPass" type="password" autocomplete="current-password" />
+              </div>
+              <div class="err" id="auErr" role="alert"></div>
+              <button class="btn btn-primary" type="submit" id="auSubmit" style="width: 100%">เข้าสู่ระบบ</button>
+            </form>
+            <div class="auth-links">
+              <button type="button" class="linkbtn" id="auForgot">ลืมรหัสผ่าน?</button>
+              <button type="button" class="linkbtn" id="auSwitch">ยังไม่มีบัญชี? สมัครสมาชิก</button>
+            </div>
+          </div>
+          <p class="fine">การดำเนินการต่อถือว่ายอมรับเงื่อนไขการใช้งาน</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="backdrop" id="m-onb" role="dialog" aria-modal="true" aria-labelledby="onbT">
+      <div class="modal onb">
+        <button class="btn btn-ghost skip" id="onbSkip">ข้าม</button>
+        <div class="onb-art" id="onbArt"></div>
+        <h2 id="onbT"></h2>
+        <p id="onbP"></p>
+        <div class="dots" id="onbDots">
+          <i></i>
+          <i></i>
+          <i></i>
+        </div>
+        <button class="btn btn-primary btn-lg" id="onbNext">ถัดไป</button>
+      </div>
+    </div>
+
+    <div class="backdrop" id="m-share" role="dialog" aria-modal="true" aria-labelledby="shT">
+      <div class="modal">
+        <button class="icon-btn x" data-close aria-label="ปิด">
+          <svg class="icon"><use href="#i-x" /></svg>
+        </button>
+        <h2 id="shT">แชร์บอร์ดนี้</h2>
+        <p class="sub" id="shSub"></p>
+        <form class="row" id="invForm" novalidate>
+          <input
+            class="field"
+            id="invEmail"
+            type="email"
+            placeholder="ใส่อีเมลเพื่อนร่วมทีม..."
+            aria-label="อีเมลเพื่อนร่วมทีม"
+          />
+          <select class="field" id="invRole" style="flex: 0 0 118px" aria-label="สิทธิ์">
+            <option value="editor">แก้ไขได้</option>
+            <option value="viewer">ดูอย่างเดียว</option>
+          </select>
+          <button class="btn btn-primary" type="submit">เชิญ</button>
+        </form>
+        <div class="err" id="invErr"></div>
+        <div class="sec-lbl">ผู้ที่มีสิทธิ์เข้าถึงแล้ว</div>
+        <ul class="people" id="people"></ul>
+        <div class="sec-lbl" style="margin-top: 0">ทุกคนที่มีลิงก์</div>
+        <div class="row" style="margin: 6px 0 16px; align-items: center">
+          <span style="flex: 1; font-size: 14px; color: var(--muted)">
+            เปิดลิงก์แล้วเข้าร่วมบอร์ดได้ทันที
+          </span>
+          <select class="field" id="linkRole" style="flex: 0 0 130px">
+            <option value="editor">แก้ไขได้</option>
+            <option value="viewer">ดูอย่างเดียว</option>
+          </select>
+        </div>
+        <button class="btn btn-outline" style="width: 100%" id="copyLink">
+          <svg class="icon"><use href="#i-link" /></svg>
+          <span>คัดลอกลิงก์เชิญ</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="backdrop" id="m-export" role="dialog" aria-modal="true" aria-labelledby="exT">
+      <div class="modal">
+        <button class="icon-btn x" data-close aria-label="ปิด">
+          <svg class="icon"><use href="#i-x" /></svg>
+        </button>
+        <h2 id="exT">Export บอร์ด</h2>
+        <p class="sub">บันทึกทุกอย่างบนบอร์ดเป็นไฟล์เดียว</p>
+        <img class="exp-prev" id="expPrev" alt="ตัวอย่างไฟล์ที่จะ export" />
+        <div class="fmt" role="radiogroup" aria-label="ชนิดไฟล์">
+          <button data-fmt="pdf" class="on" role="radio" aria-checked="true">
+            PDF
+            <small>เหมาะกับการพิมพ์/ส่งงาน</small>
+          </button>
+          <button data-fmt="png" role="radio" aria-checked="false">
+            PNG
+            <small>รูปภาพ ใส่สไลด์ได้</small>
+          </button>
+        </div>
+        <div class="form-row">
+          <label for="expName">ชื่อไฟล์</label>
+          <input class="field" id="expName" />
+        </div>
+        <label class="check">
+          <input type="checkbox" id="expWhite" />
+          ใช้พื้นหลังสีขาว (ประหยัดหมึกเวลาพิมพ์)
+        </label>
+        <button class="btn btn-primary" style="width: 100%" id="expGo">
+          <svg class="icon"><use href="#i-download" /></svg>
+          <span>ดาวน์โหลด</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="backdrop" id="m-confirm" role="alertdialog" aria-modal="true" aria-labelledby="cfT">
+      <div class="modal" style="max-width: 400px">
+        <h2 id="cfT"></h2>
+        <p class="sub" id="cfP"></p>
+        <div class="row" style="justify-content: flex-end">
+          <button class="btn btn-ghost" data-close>ยกเลิก</button>
+          <button class="btn btn-danger" id="cfOk"></button>
+        </div>
+      </div>
+    </div>
+    <div class="backdrop" id="m-rename" role="dialog" aria-modal="true" aria-labelledby="rnT">
+      <form class="modal" style="max-width: 400px" id="rnForm">
+        <h2 id="rnT">เปลี่ยนชื่อบอร์ด</h2>
+        <input
+          class="field"
+          id="rnInput"
+          maxlength="60"
+          style="margin: 14px 0 18px"
+          aria-label="ชื่อบอร์ดใหม่"
+        />
+        <div class="row" style="justify-content: flex-end">
+          <button class="btn btn-ghost" type="button" data-close>ยกเลิก</button>
+          <button class="btn btn-primary" type="submit">บันทึก</button>
+        </div>
+      </form>
+    </div>
+    <div class="backdrop" id="m-help" role="dialog" aria-modal="true" aria-labelledby="hpT">
+      <div class="modal">
+        <button class="icon-btn x" data-close aria-label="ปิด">
+          <svg class="icon"><use href="#i-x" /></svg>
+        </button>
+        <h2 id="hpT">คีย์ลัดและวิธีใช้</h2>
+        <p class="sub">ดับเบิลคลิกที่ Note, ข้อความ หรือรูปทรง เพื่อแก้ไขตัวอักษร</p>
+        <table class="keys">
+          <tbody>
+            <tr>
+              <td>เลือก / ลาก</td>
+              <td><kbd>V</kbd></td>
+            </tr>
+            <tr>
+              <td>Sticky note</td>
+              <td><kbd>N</kbd></td>
+            </tr>
+            <tr>
+              <td>ปากกา / ยางลบ</td>
+              <td>
+                <kbd>P</kbd>
+                /
+                <kbd>E</kbd>
+              </td>
+            </tr>
+            <tr>
+              <td>ข้อความ</td>
+              <td><kbd>T</kbd></td>
+            </tr>
+            <tr>
+              <td>รูปทรง</td>
+              <td><kbd>S</kbd></td>
+            </tr>
+            <tr>
+              <td>เลื่อนบอร์ด</td>
+              <td>
+                ลากพื้นที่ว่าง หรือกด
+                <kbd>Space</kbd>
+                ค้างแล้วลาก
+              </td>
+            </tr>
+            <tr>
+              <td>ซูม</td>
+              <td>
+                <kbd>Ctrl</kbd>
+                + ลูกกลิ้งเมาส์ / จีบสองนิ้วบนจอสัมผัส
+              </td>
+            </tr>
+            <tr>
+              <td>ไฮไลต์ / รีแอคชัน</td>
+              <td>
+                <kbd>H</kbd>
+                /
+                <kbd>R</kbd>
+              </td>
+            </tr>
+            <tr>
+              <td>เลือกหลายชิ้น</td>
+              <td>
+                <kbd>Shift</kbd>
+                + ลากบนพื้นที่ว่าง,
+                <kbd>Ctrl</kbd>
+                +
+                <kbd>A</kbd>
+                เลือกทั้งหมด
+              </td>
+            </tr>
+            <tr>
+              <td>เลิกทำ / ทำซ้ำ</td>
+              <td>
+                <kbd>Ctrl</kbd>
+                +
+                <kbd>Z</kbd>
+                /
+                <kbd>Ctrl</kbd>
+                +
+                <kbd>Y</kbd>
+              </td>
+            </tr>
+            <tr>
+              <td>ติดตามเพื่อน</td>
+              <td>กดรูปโปรไฟล์ของเพื่อนที่มุมขวาบน</td>
+            </tr>
+            <tr>
+              <td>ขยับวัตถุที่เลือก</td>
+              <td>
+                ปุ่มลูกศร (กด
+                <kbd>Shift</kbd>
+                ค้างเพื่อขยับทีละมาก)
+              </td>
+            </tr>
+            <tr>
+              <td>ทำสำเนา / ลบ</td>
+              <td>
+                <kbd>Ctrl</kbd>
+                +
+                <kbd>D</kbd>
+                /
+                <kbd>Delete</kbd>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="fine" style="text-align: left">
+          ทดสอบการทำงานร่วมกัน: เปิดบอร์ดเดียวกันอีกแท็บในเบราว์เซอร์เดียวกัน แล้วล็อกอินด้วยชื่ออื่น
+          จะเห็นเคอร์เซอร์และการแก้ไขของกันและกันแบบเรียลไทม์
+        </p>
+      </div>
+    </div>
+
+    <div class="backdrop" id="m-tins" role="dialog" aria-modal="true" aria-labelledby="tiT">
+      <div class="modal" style="max-width: 720px">
+        <button class="icon-btn x" data-close aria-label="ปิด">
+          <svg class="icon"><use href="#i-x" /></svg>
+        </button>
+        <h2 id="tiT">แทรกเทมเพลตลงบอร์ดนี้</h2>
+        <p class="sub">เทมเพลตจะถูกวางต่อจากงานเดิมด้านขวา ไม่ทับของที่มีอยู่</p>
+        <div class="tins-grid" id="tinsGrid"></div>
+      </div>
+    </div>
+    <div class="menu" id="meMenu" role="menu"></div>
+    <div class="menu" id="cardMenu" role="menu"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="logo" viewBox="0 0 64 64">
+        <rect x="2" y="2" width="60" height="60" rx="15" fill="#1E2530" />
+        <rect x="11" y="11" width="16" height="16" rx="3" fill="#E3A008" />
+        <path
+          d="M12 47c4-9 8 5 13-3s8-7 12-2"
+          fill="none"
+          stroke="#3FA796"
+          stroke-width="5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <g transform="rotate(-45 38 45)">
+          <path d="M38 45l8-4.2v8.4z" fill="#F1ECE1" />
+          <path d="M38 45l3.2-1.7v3.4z" fill="#3FA796" />
+          <rect x="46" y="40.8" width="22" height="8.4" rx="2.2" fill="#E3A008" />
+          <rect x="62" y="40.8" width="6" height="8.4" rx="2.2" fill="#C48A06" />
+        </g>
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7" />
+        <path d="M20 20l-3.5-3.5" />
+      </symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
+      </symbol>
+      <symbol id="i-users" viewBox="0 0 24 24">
+        <circle cx="9" cy="8" r="3.5" />
+        <path d="M2.5 20c.6-3.5 3.3-5.5 6.5-5.5s5.9 2 6.5 5.5" />
+        <path d="M16 4.5a3.5 3.5 0 010 7M18 14.8c2 .7 3.2 2.5 3.5 5.2" />
+      </symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24">
+        <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5M14 11v5" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
+      <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" /></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></symbol>
+      <symbol id="i-more" viewBox="0 0 24 24">
+        <circle cx="5" cy="12" r="1.3" />
+        <circle cx="12" cy="12" r="1.3" />
+        <circle cx="19" cy="12" r="1.3" />
+      </symbol>
+      <symbol id="i-cursor" viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z" /></symbol>
+      <symbol id="i-note" viewBox="0 0 24 24">
+        <path d="M4 4h16v11l-5 5H4z" />
+        <path d="M15 20v-5h5" />
+      </symbol>
+      <symbol id="i-pen" viewBox="0 0 24 24">
+        <path d="M16.5 3.5l4 4L8 20H4v-4z" />
+        <path d="M14 6l4 4" />
+      </symbol>
+      <symbol id="i-type" viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6" /></symbol>
+      <symbol id="i-shapes" viewBox="0 0 24 24">
+        <rect x="3" y="11" width="9" height="9" rx="1" />
+        <circle cx="16.5" cy="7.5" r="4.5" />
+      </symbol>
+      <symbol id="i-image" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <circle cx="9" cy="10" r="2" />
+        <path d="M21 16l-5-5-9 9" />
+      </symbol>
+      <symbol id="i-undo" viewBox="0 0 24 24">
+        <path d="M9 14L4 9l5-5" />
+        <path d="M4 9h11a5 5 0 010 10h-3" />
+      </symbol>
+      <symbol id="i-redo" viewBox="0 0 24 24">
+        <path d="M15 14l5-5-5-5" />
+        <path d="M20 9H9a5 5 0 000 10h3" />
+      </symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></symbol>
+      <symbol id="i-help" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9.5 9.5a2.5 2.5 0 114 2c-1 .6-1.5 1.2-1.5 2.5M12 17h.01" />
+      </symbol>
+      <symbol id="i-eraser" viewBox="0 0 24 24"><path d="M8 20h12M5 15l9-9 5 5-8 8H8z" /></symbol>
+      <symbol id="i-rect" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1" /></symbol>
+      <symbol id="i-circle" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8.5" ry="6.5" /></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 19L19 5M11 5h8v8" /></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24">
+        <rect x="8" y="8" width="12" height="12" rx="2" />
+        <path d="M16 8V5a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1h3" />
+      </symbol>
+      <symbol id="i-layers" viewBox="0 0 24 24">
+        <path d="M12 3l9 5-9 5-9-5z" />
+        <path d="M3 13l9 5 9-5" />
+      </symbol>
+      <symbol id="i-link" viewBox="0 0 24 24">
+        <path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1" />
+        <path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1" />
+      </symbol>
+      <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z" /></symbol>
+      <symbol id="i-restore" viewBox="0 0 24 24">
+        <path d="M4 12a8 8 0 108-8 8 8 0 00-6 2.7L4 9" />
+        <path d="M4 4v5h5" />
+      </symbol>
+      <symbol id="i-share" viewBox="0 0 24 24">
+        <circle cx="18" cy="5" r="2.5" />
+        <circle cx="6" cy="12" r="2.5" />
+        <circle cx="18" cy="19" r="2.5" />
+        <path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" />
+      </symbol>
+      <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 16l4-4-4-4M14 12H4" /></symbol>
+      <symbol id="i-smile" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M8.5 14.5a4.5 4.5 0 007 0M9 9.5h.01M15 9.5h.01" />
+      </symbol>
+      <symbol id="i-template" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M3 9h18M9 9v12" />
+      </symbol>
+      <symbol id="i-hl" viewBox="0 0 24 24"><path d="M9 14l-4 4v2h6l2-2M9 14l7-9 4 4-9 7z" /></symbol>
+      <symbol id="i-palette" viewBox="0 0 24 24">
+        <path d="M12 3a9 9 0 100 18c1.5 0 2-1 1.5-2s0-2 1.5-2H18a3 3 0 003-3c0-5-4-11-9-11z" />
+        <circle cx="7.5" cy="11" r="1" />
+        <circle cx="10.5" cy="7" r="1" />
+        <circle cx="15.5" cy="7.5" r="1" />
+      </symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24">
+        <circle cx="12" cy="13" r="8" />
+        <path d="M12 9v4l2.5 2.5M9 2h6" />
+      </symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" /></symbol>
+    </svg>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
