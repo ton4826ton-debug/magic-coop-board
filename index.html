@@ -445,10 +445,10 @@
           <button class="icon-btn" data-c="edit" title="แก้ไขข้อความ (Enter)">
             <svg class="icon"><use href="#i-edit" /></svg>
           </button>
-          <div class="seg" id="ctxSize" style="margin: 0">
-            <button data-fs="0" title="เล็ก">S</button>
-            <button data-fs="1" title="กลาง">M</button>
-            <button data-fs="2" title="ใหญ่">L</button>
+          <div class="fs-step" id="ctxSize" role="group" aria-label="ขนาดตัวอักษร">
+            <button data-fs="-" title="ตัวเล็กลง (Ctrl+Shift+&lt;)" aria-label="ลดขนาดตัวอักษร">A<small>−</small></button>
+            <input id="fsIn" type="number" inputmode="numeric" title="พิมพ์ขนาดเองได้ แล้วกด Enter" aria-label="ขนาดตัวอักษร" />
+            <button data-fs="+" title="ตัวใหญ่ขึ้น (Ctrl+Shift+&gt;)" aria-label="เพิ่มขนาดตัวอักษร">A<small>+</small></button>
           </div>
           <button class="icon-btn" data-c="react" title="ใส่รีแอคชัน">
             <svg class="icon"><use href="#i-smile" /></svg>

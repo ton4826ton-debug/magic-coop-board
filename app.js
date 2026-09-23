@@ -308,12 +308,24 @@ function cloudChanged(id, part) {
       lastTimerEnd[id] = t ? t.end : 0;
       tickTimer();
     } else if (drag || editing) pendingRemote = true;
-    else pullRemote();
+    else schedulePull();
   }
   if ($("#v-dash").classList.contains("on")) {
     clearTimeout(dashT);
     dashT = setTimeout(renderDash, 60);
   }
+}
+
+// meta / objects / access มาเป็นคนละ event รอให้ครบรอบเดียวก่อนค่อยดึง ไม่งั้นจะได้ข้อมูลครึ่งๆ กลางๆ
+let pullQ = false;
+function schedulePull() {
+  if (pullQ) return;
+  pullQ = true;
+  setTimeout(() => {
+    pullQ = false;
+    if (drag || editing) pendingRemote = true;
+    else pullRemote();
+  }, 0);
 }
 
 function checkReady() {
@@ -1630,6 +1642,7 @@ function render() {
       el.style.background = c + "22";
       if (o.kind === "ellipse") el.style.borderRadius = "50%";
       else el.style.borderRadius = "6px";
+      if (o.fs) el.style.fontSize = o.fs + "px";
       el.innerHTML = `<div class="txt" data-ph="">${esc(o.text)}</div>`;
     } else if (o.type === "image") {
       el.innerHTML = `<img src="${o.src}" alt="">`;
@@ -1869,10 +1882,29 @@ $("#undoBtn").onclick = undo;
 
 $("#redoBtn").onclick = redo;
 
+// ขนาดตัวอักษร: กด A−/A+ จะกระโดดไปขนาดถัดไปในลิสต์ หรือพิมพ์ตัวเลขเองก็ได้
 const FS = {
-  text: [18, 24, 36],
-  note: [13, 15, 20],
+  text: { def: 24, min: 10, max: 120, steps: [10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 42, 48, 60, 72, 96, 120] },
+  note: { def: 15, min: 10, max: 40, steps: [10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 28, 32, 40] },
+  shape: { def: 15, min: 10, max: 60, steps: [10, 12, 14, 15, 16, 18, 20, 24, 28, 32, 40, 48, 60] },
 };
+const getFs = (o) => (o.type === "text" ? o.size || 24 : o.fs || FS[o.type].def);
+function setFs(o, v) {
+  const f = FS[o.type];
+  if (!f || !isFinite(v)) return;
+  v = clamp(Math.round(v), f.min, f.max);
+  if (v === getFs(o)) return placeCtx();
+  if (o.type === "text") o.size = v;
+  else o.fs = v;
+  touch(o);
+  commit();
+}
+function stepFs(o, dir) {
+  const f = FS[o.type],
+    cur = getFs(o);
+  const next = dir > 0 ? (f.steps.find((x) => x > cur) ?? f.max) : ([...f.steps].reverse().find((x) => x < cur) ?? f.min);
+  setFs(o, next);
+}
 
 const maxZ = () => B.objects.reduce((m, o) => Math.max(m, o.z || 0), 0);
 
@@ -2093,8 +2125,10 @@ function placeCtx() {
   const fsz = FS[o.type];
   $("#ctxSize").style.display = fsz ? "" : "none";
   if (fsz) {
-    const cur = o.type === "text" ? o.size || 24 : o.fs || fsz[1];
-    $$("#ctxSize button").forEach((b, i) => b.classList.toggle("on", fsz[i] === cur));
+    const inp = $("#fsIn");
+    inp.min = fsz.min;
+    inp.max = fsz.max;
+    if (document.activeElement !== inp) inp.value = getFs(o);
   }
   let x, y;
   if (o.type === "line") {
@@ -2123,6 +2157,17 @@ function placeCtx() {
   ctx.style.top = Math.max(y * view.z + view.y - 14, 60) + "px";
 }
 
+$("#fsIn").addEventListener("change", () => {
+  const o = sel && findObj(sel);
+  if (o && FS[o.type]) setFs(o, parseFloat($("#fsIn").value));
+});
+$("#fsIn").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" || e.key === "Escape") {
+    if (e.key === "Escape") placeCtx();
+    e.target.blur();
+  }
+});
+
 $("#ctx").onclick = (e) => {
   if (multi.length) {
     const c = e.target.closest("[data-c]");
@@ -2149,11 +2194,7 @@ $("#ctx").onclick = (e) => {
   if (!o) return;
   const fb = e.target.closest("[data-fs]");
   if (fb) {
-    const v = FS[o.type][+fb.dataset.fs];
-    if (o.type === "text") o.size = v;
-    else o.fs = v;
-    touch(o);
-    commit();
+    if (FS[o.type]) stepFs(o, fb.dataset.fs === "+" ? 1 : -1);
     return;
   }
   if (e.target.closest("[data-c=edit]")) {
@@ -2983,6 +3024,14 @@ document.addEventListener("keydown", (e) => {
     duplicate();
     return;
   }
+  if (mod && e.shiftKey && [">", ".", "<", ","].includes(e.key) && canEdit()) {
+    const o = sel && findObj(sel);
+    if (o && FS[o.type]) {
+      e.preventDefault();
+      stepFs(o, e.key === ">" || e.key === "." ? 1 : -1);
+    }
+    return;
+  }
   if (e.key.startsWith("Arrow") && (sel || multi.length) && canEdit()) {
     e.preventDefault();
     const st = e.shiftKey ? 20 : 2,
@@ -3700,7 +3749,7 @@ async function drawBoardCanvas(b, { white = false, scale = 2 } = {}) {
       else ctx.rect(o.x, o.y, o.w, o.h);
       ctx.fill();
       ctx.stroke();
-      if (o.text) text(o.text, o.x + o.w / 2, o.y + o.h / 2, o.w - 16, 15, fg("bone"), true);
+      if (o.text) text(o.text, o.x + o.w / 2, o.y + o.h / 2, o.w - 16, o.fs || 15, fg("bone"), true);
     } else if (o.type === "line") {
       const col = fg(o.color);
       ctx.strokeStyle = ctx.fillStyle = col;

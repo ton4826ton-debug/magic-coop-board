@@ -2044,11 +2044,50 @@ h2 {
 .ctx .icon-btn {
   border-radius: 9px;
 }
-#ctxSize button {
+.fs-step {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bone-2);
+  border-radius: 10px;
+  padding: 2px;
+}
+.fs-step button {
   width: 30px;
   height: 30px;
-  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 8px;
   font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+.fs-step button small {
+  font-size: 11px;
+  margin-left: 1px;
+}
+.fs-step button:hover {
+  background: var(--white);
+}
+.fs-step input {
+  width: 46px;
+  height: 30px;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  text-align: center;
+  font-weight: 600;
+  font-size: 13px;
+  -moz-appearance: textfield;
+}
+.fs-step input:focus {
+  outline: none;
+  border-color: var(--amber);
+}
+.fs-step input::-webkit-inner-spin-button,
+.fs-step input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 .zoom .grp {
   border-radius: 12px;
