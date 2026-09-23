@@ -180,18 +180,18 @@ if (FB) {
   firebase.initializeApp(fbCfg);
   auth = firebase.auth();
   auth.languageCode = "th";
-  // เก็บ session แยกแต่ละแท็บ จะได้เปิดสองแท็บเป็นคนละคนได้ตอนเดโม
-  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+  // จำการล็อกอินไว้ในเบราว์เซอร์ เปิดแท็บใหม่หรือปิดเปิดเบราว์เซอร์ก็ยังล็อกอินอยู่ จนกว่าจะกดออกจากระบบ
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 }
 
-let me = sess.get("user") || (FB ? null : store.get("last_user"));
+let me = sess.get("user") || store.get("last_user");
 
 if (me) sess.set("user", me);
 
 function setUser(u) {
   me = u;
   sess.set("user", u);
-  if (!FB) store.set("last_user", u);
+  store.set("last_user", u);
 }
 
 function logout() {
@@ -1002,6 +1002,7 @@ if (FB) {
       if (me) {
         me = null;
         sess.del("user");
+        store.del("last_user");
         route();
       }
       return;
