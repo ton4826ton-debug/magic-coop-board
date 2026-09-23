@@ -2809,7 +2809,10 @@ vp.addEventListener("pointercancel", endDrag);
 
 vp.addEventListener("dblclick", (e) => {
   if (!B || !canEdit()) return;
-  const hitEl = e.target.closest("[data-id]");
+  // ตอนกด vp จับ pointer ไว้ (setPointerCapture) ทำให้ e.target กลายเป็น vp เสมอ
+  // เลยต้องหาชิ้นที่อยู่ใต้เมาส์จากพิกัดจริงแทน
+  const under = document.elementsFromPoint(e.clientX, e.clientY);
+  const hitEl = under.map((el) => el.closest("[data-id]")).find(Boolean);
   if (hitEl) {
     startEdit(hitEl.dataset.id);
     return;
