@@ -226,6 +226,7 @@ function putBoard(b) {
 // ---------- เก็บข้อมูลบน Firebase Realtime Database ----------
 // ทุกเครื่องเห็นบอร์ดเดียวกัน ข้อมูลในเครื่องเป็นแค่ cache ที่ sync กับ server ตลอด
 const CLOUD = FB && !!firebase.database;
+const dbURL = fbCfg.databaseURL || `https://${fbCfg.projectId}-default-rtdb.asia-southeast1.firebasedatabase.app`;
 let db = null,
   cloudAuthed = false,
   srvOffset = 0;
@@ -234,9 +235,7 @@ const ekey = (e) => (e || "").toLowerCase().replace(/\./g, ",");
 const nowS = () => Date.now() + srvOffset;
 
 if (CLOUD) {
-  db = firebase
-    .app()
-    .database(fbCfg.databaseURL || `https://${fbCfg.projectId}-default-rtdb.asia-southeast1.firebasedatabase.app`);
+  db = firebase.app().database(dbURL);
   db.ref(".info/serverTimeOffset").on("value", (s) => (srvOffset = s.val() || 0));
 }
 
@@ -330,13 +329,30 @@ function cloudStart() {
   cloudStop();
   cloud.email = me.email;
   const r = db.ref("userBoards/" + ekey(me.email));
-  const cb = r.on("value", (snap) => {
-    cloud.index = snap.val() || {};
-    Object.keys(cloud.index).forEach(cloudSub);
-    checkReady();
-    if ($("#v-dash").classList.contains("on")) renderDash();
-  });
+  cloud.error = null;
+  const cb = r.on(
+    "value",
+    (snap) => {
+      cloud.index = snap.val() || {};
+      Object.keys(cloud.index).forEach(cloudSub);
+      checkReady();
+      if ($("#v-dash").classList.contains("on")) renderDash();
+    },
+    (err) => {
+      console.error(err);
+      cloud.error = "ไม่มีสิทธิ์อ่านข้อมูล: ตรวจว่ากด Publish กฎใน Realtime Database > Rules แล้ว";
+      if ($("#v-dash").classList.contains("on")) renderDash();
+    },
+  );
   cloud.idxOff = () => r.off("value", cb);
+  // ถ้าเงียบนานผิดปกติ มักเป็นเพราะยังไม่ได้สร้างฐานข้อมูล หรือ databaseURL ผิด
+  clearTimeout(cloud.slowT);
+  cloud.slowT = setTimeout(() => {
+    if (cloud.ready || cloud.error) return;
+    cloud.error =
+      "เชื่อมต่อฐานข้อมูลไม่ได้: ตรวจว่าสร้าง Realtime Database แล้ว และ databaseURL ใน firebase-config.js ตรงกับลิงก์ในหน้า Realtime Database";
+    if ($("#v-dash").classList.contains("on")) renderDash();
+  }, 8000);
 }
 
 function cloudStop() {
@@ -1126,7 +1142,9 @@ function renderDash() {
   if (!me) return;
   $("#meBtn").innerHTML = avatarHTML(me);
   if (CLOUD && !cloud.ready) {
-    $("#boardGrid").innerHTML = `<div class="empty"><b>กำลังโหลดบอร์ด...</b>รอสักครู่</div>`;
+    $("#boardGrid").innerHTML = cloud.error
+      ? `<div class="empty"><b>โหลดบอร์ดไม่สำเร็จ</b>${esc(cloud.error)}<br><small>ใช้ URL: ${esc(dbURL)}</small></div>`
+      : `<div class="empty"><b>กำลังโหลดบอร์ด...</b>รอสักครู่</div>`;
     return;
   }
   ["mine", "shared", "trash"].forEach((t) => {
@@ -1501,6 +1519,10 @@ function openBoard(id) {
     whenLoaded(id, () => {
       if (location.hash === "#/board/" + id) openBoard(id);
     });
+    return;
+  }
+  if (CLOUD && cloud.boards[id]?.denied) {
+    boardMsg("เปิดบอร์ดไม่ได้", "ไม่มีสิทธิ์อ่านข้อมูล ตรวจว่ากด Publish กฎใน Realtime Database > Rules แล้ว");
     return;
   }
   const b = getBoard(id);
