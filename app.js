@@ -3475,4 +3475,70 @@ $("#expGo").onclick = async () => {
   }
 };
 
+// ของตกแต่งหน้าแรก: เอียงแบบ 3D ตามเมาส์ ลากเล่นได้ ปล่อยแล้วเด้งกลับที่เดิม
+(function () {
+  const all = document.querySelectorAll(".hero-scene .fl, .deco-scene .fl");
+  if (!all.length) return;
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const items = [...all].map((el) => ({
+    el,
+    d: +el.dataset.d || 50,
+    x: 0, y: 0, vx: 0, vy: 0,
+    drag: null,
+  }));
+  let mx = 0, my = 0, tx = 0, ty = 0;
+  window.addEventListener("mousemove", (e) => {
+    mx = e.clientX / innerWidth - 0.5;
+    my = e.clientY / innerHeight - 0.5;
+  });
+
+  items.forEach((it) => {
+    it.el.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      it.el.setPointerCapture(e.pointerId);
+      it.drag = { sx: e.clientX - it.x, sy: e.clientY - it.y };
+      it.el.classList.add("drag");
+    });
+    it.el.addEventListener("pointermove", (e) => {
+      if (!it.drag) return;
+      const nx = e.clientX - it.drag.sx, ny = e.clientY - it.drag.sy;
+      it.vx = nx - it.x;
+      it.vy = ny - it.y;
+      it.x = nx;
+      it.y = ny;
+    });
+    const up = () => {
+      it.drag = null;
+      it.el.classList.remove("drag");
+    };
+    it.el.addEventListener("pointerup", up);
+    it.el.addEventListener("pointercancel", up);
+  });
+
+  function frame() {
+    if (!calm) {
+      tx += (mx - tx) * 0.06;
+      ty += (my - ty) * 0.06;
+    }
+    for (const it of items) {
+      if (!it.drag) {
+        // สปริงดึงกลับ ให้เด้งนิดๆ ก่อนหยุด
+        it.vx = (it.vx - it.x * 0.06) * 0.86;
+        it.vy = (it.vy - it.y * 0.06) * 0.86;
+        it.x += it.vx;
+        it.y += it.vy;
+      }
+      const k = it.d / 60;
+      const px = tx * 40 * k, py = ty * 30 * k;
+      const tilt = it.drag ? 0 : 1;
+      it.el.style.transform =
+        `translate3d(${it.x + px}px, ${it.y + py}px, ${it.d * 0.5}px) ` +
+        `rotateY(${tx * 22 * tilt}deg) rotateX(${-ty * 18 * tilt}deg)` +
+        (it.drag ? " scale(1.08)" : "");
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
 route();
